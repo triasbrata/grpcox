@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"net/http"
 	"regexp"
+
+	"github.com/gusaul/grpcox/assets"
 )
 
 var (
@@ -14,10 +16,12 @@ var (
 
 func init() {
 	reGetFuncArg = regexp.MustCompile("\\( (.*) \\) returns")
-	indexHTML = template.Must(template.New("index.html").Delims("{[", "]}").ParseFiles("index/index.html"))
+	indexHTML = template.Must(template.New("index.html").Delims("{[", "]}").ParseFS(
+		assets.FolderAssets,
+		"index/index.html",
+	))
 }
 
-// Response - Standar ajax Response
 type Response struct {
 	Error string      `json:"error,omitempty"`
 	Data  interface{} `json:"data"`

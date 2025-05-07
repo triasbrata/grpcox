@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"io/fs"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/gusaul/grpcox/assets"
 )
 
 // Init - routes initialization
@@ -24,11 +26,18 @@ func Init(router *mux.Router) {
 	// close active connection
 	router.HandleFunc("/active/close/{host}", corsHandler(h.closeActiveConns)).Methods(http.MethodDelete, http.MethodOptions)
 
-	assetsPath := "index"
-	router.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir(assetsPath+"/css/"))))
-	router.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir(assetsPath+"/js/"))))
-	router.PathPrefix("/font/").Handler(http.StripPrefix("/font/", http.FileServer(http.Dir(assetsPath+"/font/"))))
-	router.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.FileServer(http.Dir(assetsPath+"/img/"))))
+	router.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServerFS(mustLoad("index/css"))))
+	router.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServerFS(mustLoad("index/js"))))
+	router.PathPrefix("/font/").Handler(http.StripPrefix("/font/", http.FileServerFS(mustLoad("index/font"))))
+	router.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.FileServerFS(mustLoad("index/img"))))
+}
+
+func mustLoad(dir string) fs.FS {
+	fsRoot, err := fs.Sub(assets.FolderAssets, dir)
+	if err != nil {
+		panic(err)
+	}
+	return fsRoot
 }
 
 func corsHandler(h http.HandlerFunc) http.HandlerFunc {
